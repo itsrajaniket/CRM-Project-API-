@@ -24,11 +24,29 @@ We are building the "waiter". The frontend will ask us for data (e.g., "Give me 
 
 ## Phase 1: Setup & Authentication (Coming Next)
 
-### What we will do:
-1. **Initialize the Project**: We will run a command to create a `package.json` file. This file keeps track of all the tools (dependencies) our project needs to run.
-2. **Install Tools**: We will install Express, Mongoose, and security tools (like `bcrypt` for hiding passwords and `jsonwebtoken` for creating secure login passes).
-3. **Connect to the Database**: We will write code to connect our app to MongoDB.
-4. **Create Models**: We will create the `Tenant` (Company) and `User` blueprints so the database knows what data to expect.
-5. **Build Auth Routes**: We will create the login, register, and password reset endpoints.
+### What We Just Built (Phase 1 Completed!)
 
-*(This file will be updated with more detailed explanations once we start writing the code for Phase 1!)*
+We have successfully built the Authentication and Onboarding engine for your CRM! Here is exactly what we created inside the new `backend` folder:
+
+1. **Project Setup (`server.js`)**: 
+   - We created a `server.js` file. This is the main engine of our API. It listens for incoming requests (like logins) on port 5000. 
+   - We installed `express` (to handle the web traffic) and `mongoose` (to talk to MongoDB).
+   - We set up a global Error Handler. This ensures that if the server breaks, the frontend gets a clean `{ success: false, message: "..." }` response instead of crashing the whole server.
+
+2. **Database Models (`src/models/`)**: 
+   - We created the `Tenant` model. This represents a Company. Because this is a *Multi-Tenant* CRM, every user and lead will belong to a specific Tenant.
+   - We created the `User` model. This holds the employee's details, role (`SuperAdmin`, `Admin`, `Telecaller`), and their password.
+   - We created an `Otp` model. This temporarily stores the 6-digit codes generated when someone clicks "Forgot Password".
+
+3. **Security Measures (`src/middleware/authMiddleware.js`)**: 
+   - We created a lock on our API called `requireAuth`. When a user logs in, they get a "JWT" (JSON Web Token) which acts like a VIP wristband.
+   - Every time the frontend asks for secure data, it sends the JWT. `requireAuth` checks the wristband. If it's valid, it figures out exactly which `company_id` the user belongs to and attaches it to the request so they can never see another company's data.
+
+4. **Controllers & Logic (`src/controllers/authController.js`)**:
+   - **`/register`**: Creates an `Admin` user and a dummy Tenant named "Pending Setup".
+   - **`/business-setup`**: Takes the logged-in user and fully fills out their Tenant details (Business Name, GST, etc.).
+   - **`/login`**: Checks the email, securely compares the hashed password using `bcrypt`, and returns the JWT wristband. It also ensures SuperAdmins can only log in through the SuperAdmin portal.
+   - **`/forgot-password` & `/verify-otp`**: Generates a random 6-digit code, saves it to the database, and later verifies if the user entered it correctly. For now, it prints the OTP to our server console!
+
+### What's Next?
+In **Phase 2**, we will start building the "Client & Lead Engine" so you can actually start adding and viewing customer leads!
