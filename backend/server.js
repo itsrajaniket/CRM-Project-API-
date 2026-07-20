@@ -19,6 +19,7 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 // Telecaller/Admin auth routes
 app.use('/api/admin/auth', require('./src/routes/authRoutes'));
 app.use('/api/sa-telecaller/auth', require('./src/routes/authRoutes'));
+app.use('/api/leads', require('./src/routes/leadRoutes'));
 
 // Global Error Handler
 app.use(errorHandler);
