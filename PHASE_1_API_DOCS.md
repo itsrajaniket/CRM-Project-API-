@@ -1,6 +1,6 @@
 # Phase 1 (Auth & Onboarding) – Backend API Documentation
 
-> Handoff doc for Frontend Team | Backend: MERN (MongoDB, Express, Node.js) | Phase: 1
+> Handoff doc for Frontend Team | Backend: MERN (MongoDB, Express, Node.js) | Author: Backend Team (Aniket/AI) | Last Updated: 2026-07-20
 
 ---
 
@@ -9,11 +9,35 @@
 - **Project Name:** Multi-Tenant CRM
 - **Short Description:** A multi-tenant CRM backend where companies can register, manage leads, and track telecaller attendance.
 - **Backend Live/Base URL (Dev):** `http://localhost:5000/api`
+- **Backend Live/Base URL (Prod/Staging):** `N/A (Local Dev Only for now)`
 - **Tech Stack:** Node.js, Express.js, MongoDB, Mongoose, JWT Auth
+- **Repo Link:** `N/A (Pending)`
+- **Postman Collection Link:** `N/A (Pending)`
 
 ---
 
-## 2. Authentication Flow
+## 2. How to Run Backend Locally
+
+```bash
+1. cd backend
+2. npm install
+3. node server.js
+4. Server runs on http://localhost:5000
+```
+
+---
+
+## 3. Environment Variables (Non-secret only)
+
+| Variable | Example Value | Description |
+|---|---|---|
+| PORT | 5000 | Server port |
+| MONGO_URI | mongodb://localhost:27017/crm | Database connection string |
+| OTP_EXPIRY_MINUTES | 10 | How long OTPs are valid for |
+
+---
+
+## 4. Authentication Flow
 
 - **Auth Type:** JWT (JSON Web Token)
 - **How to send token:** In headers as:
@@ -25,14 +49,14 @@
 
 ---
 
-## 3. Standard Response Format
+## 5. Standard Response Format
 
 **Success Response:**
 ```json
 {
   "success": true,
   "message": "Dynamic success message",
-  "data": { ... }
+  "data": { }
 }
 ```
 
@@ -57,7 +81,7 @@
 
 ---
 
-## 4. Data Models (Simplified Schema Reference)
+## 6. Data Models (Simplified Schema Reference)
 
 ### User Model
 | Field | Type | Required | Notes |
@@ -71,8 +95,9 @@
 | plain_password | String | no | Stored for UI display purposes |
 | phone | String | no | |
 | profile_image | String | no | |
-| status | String | yes | 'Active' or 'Inactive' |
-| is_deleted | Boolean | yes | defaults to false |
+| status | String | yes | 'Active' or 'Inactive' (Default: 'Active') |
+| is_deleted | Boolean | yes | Default: false |
+| created_at | Date | auto | |
 
 ### Tenant Model (Company)
 | Field | Type | Required | Notes |
@@ -85,11 +110,24 @@
 | website | String | no | |
 | business_phone | String | no | |
 | gst_number | String | no | |
-| status | String | yes | 'Active' or 'Inactive' |
+| subscription_plan_id | ObjectId | no | References SubscriptionPlan |
+| status | String | yes | 'Active' or 'Inactive' (Default: 'Active') |
+| is_platform_tenant | Boolean | yes | Default: false (true for SuperAdmin) |
+| created_at | Date | auto | |
+
+### Otp Model
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| _id | ObjectId | auto | |
+| user_id | ObjectId | yes | References User |
+| code | String | yes | 6-digit OTP code |
+| expires_at | Date | yes | Expiration timestamp |
+| used | Boolean | yes | Default: false |
+| created_at | Date | auto | |
 
 ---
 
-## 5. API Endpoints
+## 7. API Endpoints
 
 ### 🔹 Module: Authentication & Onboarding
 
@@ -118,10 +156,6 @@
   }
 }
 ```
-- **Error Response (400):**
-```json
-{ "success": false, "message": "User with this email already exists", "data": null }
-```
 
 #### 2. Business Setup
 - **Method:** POST
@@ -131,7 +165,7 @@
 ```json
 {
   "business_name": "Tech Corp",
-  "logo_url": "https://link-to-image.com",
+  "logo_url": "https://example.com/logo.png",
   "team_size": "10-50",
   "website": "www.techcorp.com",
   "business_email": "hello@techcorp.com",
@@ -144,9 +178,7 @@
 {
   "success": true,
   "message": "Business setup completed successfully",
-  "data": {
-    "company_id": "64f..."
-  }
+  "data": { "company_id": "64f..." }
 }
 ```
 
@@ -156,10 +188,7 @@
 - **Auth Required:** No
 - **Request Body:**
 ```json
-{ 
-  "email": "john@company.com", 
-  "password": "securepassword123" 
-}
+{ "email": "john@company.com", "password": "securepassword123" }
 ```
 - **Success Response (200):**
 ```json
@@ -168,24 +197,32 @@
   "message": "Login successful",
   "data": {
     "token": "eyJhbG...",
-    "user": {
-      "id": "64f...",
-      "full_name": "John Doe",
-      "email": "john@company.com",
-      "role": "Admin",
-      "company_id": "64f...",
-      "business_setup_complete": true
-    }
+    "user": { "id": "64f...", "role": "Admin", "business_setup_complete": true }
   }
 }
 ```
-- **Error Response (401):**
-```json
-{ "success": false, "message": "Invalid email or password", "data": null }
-```
-*(Note: There are alternative login routes for Super Admin (`/api/admin/auth/login`) and SA Telecallers (`/api/sa-telecaller/auth/login`) using the exact same body/response structure).*
 
-#### 4. Forgot Password (Generate OTP)
+#### 4. Login User (Super Admin)
+- **Method:** POST
+- **URL:** `/api/admin/auth/login`
+- **Auth Required:** No
+- **Request Body:**
+```json
+{ "email": "superadmin@crm.com", "password": "securepassword123" }
+```
+- **Success Response (200):** *(Returns same structure as CRM User login)*
+
+#### 5. Login User (Super Admin Telecaller)
+- **Method:** POST
+- **URL:** `/api/sa-telecaller/auth/login`
+- **Auth Required:** No
+- **Request Body:**
+```json
+{ "email": "satelecaller@crm.com", "password": "securepassword123" }
+```
+- **Success Response (200):** *(Returns same structure as CRM User login)*
+
+#### 6. Forgot Password (Generate OTP)
 - **Method:** POST
 - **URL:** `/api/auth/forgot-password`
 - **Auth Required:** No
@@ -201,32 +238,25 @@
   "data": { "dev_otp": "950001" } 
 }
 ```
-*(Note: `dev_otp` is currently returned in the payload for testing purposes. In production, this will be removed and sent via email).*
 
-#### 5. Verify OTP
+#### 7. Verify OTP
 - **Method:** POST
 - **URL:** `/api/auth/verify-otp`
 - **Auth Required:** No
 - **Request Body:**
 ```json
-{ 
-  "email": "john@company.com",
-  "otp": "950001"
-}
+{ "email": "john@company.com", "otp": "950001" }
 ```
 - **Success Response (200):**
 ```json
 {
   "success": true,
   "message": "OTP verified successfully",
-  "data": {
-    "otp_reset_token": "eyJhbG..."
-  }
+  "data": { "otp_reset_token": "eyJhbG..." }
 }
 ```
-*(Note: You must save this `otp_reset_token`, as it is required for the final reset password step).*
 
-#### 6. Reset Password
+#### 8. Reset Password
 - **Method:** POST
 - **URL:** `/api/auth/reset-password`
 - **Auth Required:** No (But requires `otp_reset_token` in body)
@@ -247,3 +277,23 @@
   "data": {}
 }
 ```
+
+---
+
+## 8. Postman Collection
+- *Not generated yet for this phase.*
+
+---
+
+## 9. File/Image Upload Endpoints
+- *No file uploads required for this phase.*
+
+---
+
+## 10. Known Limitations / Pending Items
+- **Email Delivery:** OTPs are currently printed to the server terminal (`dev_otp`) instead of sending a real email.
+
+---
+
+## 11. Contact / Support
+- **Backend Developer:** Aniket
