@@ -46,5 +46,21 @@ The coolest part of Phase 2 is that the user never has to tell us what company t
 
 ---
 
+## Phase 3: Telecaller & Attendance Engine (Completed)
+This phase turns our CRM into a mini HR system. We built two completely different experiences depending on who is logged in:
+
+### For the Manager (Admin)
+Admins can now add their employees (Telecallers) to the CRM. We built a system so the Admin can view their employees' passwords (just like the Figma designs requested!) while still keeping the login engine perfectly secure. Admins can also view exactly how many days their employees worked, and if they took a "Full Day" or a "Half Day".
+
+### For the Employee (Telecaller)
+When a Telecaller logs in, they get a self-service time clock. 
+- They click **Clock-In** when they arrive.
+- They can take **Breaks** (Lunch, Tea, etc.), and the system acts like a stopwatch, pausing their work time.
+- When they **Clock-Out**, our custom Math Engine instantly calculates their Gross Time, subtracts their Break Time, and automatically grades them! 
+
+👉 **For a deep dive into the clock-out math and exactly how Phase 3 works, please read the [PHASE_3_SUMMARY.md](file:///c:/Users/ANIKET/Desktop/NEW%20CRM/PHASE_3_SUMMARY.md) file.**
+
+---
+
 ### What's Next?
-In **Phase 3**, we will build the "Telecaller & Attendance Module" to allow managers to track their team's performance!
+In **Phase 4**, we will build the "Client Engine" (moving a Lead to an active Client)!
