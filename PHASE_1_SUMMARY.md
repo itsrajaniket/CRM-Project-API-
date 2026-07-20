@@ -88,4 +88,63 @@ Here is a complete list of the APIs built in Phase 1, what data they expect, and
   - **Returns:** A success message confirming the password change.
 
 ---
-**Summary:** Phase 1 successfully established the gatekeeper for our entire application. From here on, any new phase we build can safely rely on the fact that users are authenticated, their roles are verified, and their company data is completely isolated from others.
+
+## 6. Deep Dive: File Structure & Function Breakdown
+
+To understand exactly how the project is organized under the hood, here is the complete file structure built in Phase 1 and an explanation of every function within them.
+
+### Structure Overview
+```text
+backend/
+├── server.js                   # The main entry point of the server
+├── package.json                # List of all installed tools (express, mongoose, etc.)
+└── src/
+    ├── config/
+    │   └── db.js               # Database connection logic
+    ├── models/
+    │   ├── Tenant.js           # Database Schema for Companies
+    │   ├── User.js             # Database Schema for Users/Employees
+    │   └── Otp.js              # Database Schema for Password Reset Codes
+    ├── routes/
+    │   └── authRoutes.js       # URL definitions for authentication
+    ├── controllers/
+    │   └── authController.js   # The core logic and brain of authentication
+    ├── middleware/
+    │   ├── authMiddleware.js   # Security checks (JWT verification)
+    │   └── errorMiddleware.js  # Global crash prevention
+    └── utils/
+        └── response.js         # Standardization for JSON responses
+```
+
+### Detailed File & Function Breakdown
+
+#### `backend/server.js`
+This is the heart of the application. It boots up the Express web server, connects to the database, applies global configurations (like allowing Cross-Origin Requests with `cors`), and mounts our `authRoutes` onto the `/api/auth` path. Finally, it tells the server to "listen" on Port 5000.
+
+#### `backend/src/config/db.js`
+- **`connectDB()`**: An asynchronous function that attempts to connect to MongoDB using the `MONGO_URI` from the `.env` file. If it fails, it shuts down the server to prevent running in a broken state.
+
+#### `backend/src/utils/response.js`
+- **`sendSuccess(res, data, message, statusCode)`**: A helper function ensuring that every successful API response has the exact same structure (`{ success: true, data: ..., message: ... }`).
+- **`sendError(res, message, statusCode)`**: A helper function ensuring that every failed API response is identically structured (`{ success: false, data: null, message: ... }`).
+
+#### `backend/src/middleware/authMiddleware.js`
+- **`requireAuth()`**: This function runs *before* protected routes. It checks the request headers for a `Bearer` token. If found, it decrypts the token using `JWT_SECRET`. It then checks if the user still exists in the database and isn't deleted or inactive. If all checks pass, it attaches the user's details (`id`, `role`, `company_id`) to the request so the controller can use them.
+- **`requireRole(roles)`**: This function is used to restrict routes to specific user types (e.g., `Admin` only). It checks if the `req.user.role` matches the allowed roles.
+
+#### `backend/src/middleware/errorMiddleware.js`
+- **`errorHandler()`**: A global safety net. If any function in the app crashes or throws an unexpected error, Express will pass it here. This function formats the crash into a clean `sendError` JSON response, ensuring the frontend never sees a raw HTML stack trace.
+
+#### `backend/src/controllers/authController.js`
+*This file contains the actual business logic for the APIs.*
+- **`generateToken(user)`**: An internal helper that creates a secure, encrypted JWT token containing the user's ID, role, and company ID.
+- **`register(req, res)`**: Checks if the email is already in use. Creates a "Pending Setup" Tenant. Hashes the incoming password. Creates a new User attached to that Tenant. Returns a success message and token.
+- **`businessSetup(req, res)`**: Takes data from the frontend and updates the "Pending Setup" Tenant with real company details. Marks the Tenant as 'Active'.
+- **`loginCore(req, res, expectedRole)`**: The internal logic engine for all logins. It checks if the user exists, verifies the hashed password, ensures the account is active, and verifies that the user is trying to log into the correct portal (e.g., stopping an Admin from logging into the SuperAdmin portal).
+- **`login(req, res)`**, **`superAdminLogin(req, res)`**, **`saTelecallerLogin(req, res)`**: These are thin wrapper functions that simply call `loginCore` and pass it the specific role required for that login page.
+- **`forgotPassword(req, res)`**: Searches for the user by email. If found, generates a random 6-digit number, saves it in the `Otp` database collection, and (currently) prints it to the developer console.
+- **`verifyOtp(req, res)`**: Checks if the provided OTP matches the one in the database and hasn't expired. If valid, marks it as used and issues a temporary 15-minute "reset token".
+- **`resetPassword(req, res)`**: Verifies the 15-minute reset token, ensures the new passwords match, hashes the new password, and saves it to the User's database profile.
+
+#### `backend/src/routes/authRoutes.js`
+This file acts as a map. It links the URL paths (like `POST /register`) to the exact functions inside `authController.js`. It also applies the `requireAuth` middleware to the `/business-setup` route to protect it.
