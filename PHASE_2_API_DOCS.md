@@ -202,7 +202,8 @@
 ---
 
 ## 8. Postman Collection
-- *Not generated yet for this phase.*
+- **File:** `CRM_Postman_Collection.json` (Located in the root desktop folder).
+- **Usage:** Import this file into Postman to instantly access all 28 APIs built in Phases 1, 2, and 3. No manual configuration required.
 
 ---
 
