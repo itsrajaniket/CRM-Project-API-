@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false // Always exclude password from query results by default
   },
+  plain_password: {
+    type: String // To show on Admin screen as per Figma
+  },
   phone: {
     type: String
   },

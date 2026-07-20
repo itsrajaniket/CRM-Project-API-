@@ -20,6 +20,9 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/admin/auth', require('./src/routes/authRoutes'));
 app.use('/api/sa-telecaller/auth', require('./src/routes/authRoutes'));
 app.use('/api/leads', require('./src/routes/leadRoutes'));
+app.use('/api/telecallers', require('./src/routes/telecallerRoutes'));
+app.use('/api/attendance', require('./src/routes/attendanceRoutes'));
+app.use('/api/breaks', require('./src/routes/breakRoutes'));
 
 // Global Error Handler
 app.use(errorHandler);
