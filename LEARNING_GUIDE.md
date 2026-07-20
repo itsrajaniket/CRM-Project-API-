@@ -22,31 +22,29 @@ We are building the "waiter". The frontend will ask us for data (e.g., "Give me 
 
 ---
 
-## Phase 1: Setup & Authentication (Coming Next)
+## Phase 1: Setup & Authentication (Completed)
+We have successfully built the Authentication and Onboarding engine for your CRM! We created a Multi-Tenant system that securely logs users in and keeps company data completely separate.
 
-### What We Just Built (Phase 1 Completed!)
+👉 **For a deep dive into exactly how Phase 1 works, including the code flow and API list, please read the [PHASE_1_SUMMARY.md](file:///c:/Users/ANIKET/Desktop/NEW%20CRM/PHASE_1_SUMMARY.md) file.**
 
-We have successfully built the Authentication and Onboarding engine for your CRM! Here is exactly what we created inside the new `backend` folder:
+---
 
-1. **Project Setup (`server.js`)**: 
-   - We created a `server.js` file. This is the main engine of our API. It listens for incoming requests (like logins) on port 5000. 
-   - We installed `express` (to handle the web traffic) and `mongoose` (to talk to MongoDB).
-   - We set up a global Error Handler. This ensures that if the server breaks, the frontend gets a clean `{ success: false, message: "..." }` response instead of crashing the whole server.
+## Phase 2: Leads Management (Completed)
+We have built the core engine that allows CRM Users to manage their potential customers! 
 
-2. **Database Models (`src/models/`)**: 
-   - We created the `Tenant` model. This represents a Company. Because this is a *Multi-Tenant* CRM, every user and lead will belong to a specific Tenant.
-   - We created the `User` model. This holds the employee's details, role (`SuperAdmin`, `Admin`, `Telecaller`), and their password.
-   - We created an `Otp` model. This temporarily stores the 6-digit codes generated when someone clicks "Forgot Password".
+### What is a Lead?
+In a CRM (Customer Relationship Management) system, a "Lead" is a person or business that has shown interest in your product but hasn't bought it yet. Our backend now allows users to:
+- **Create** new leads and save their contact info to the database.
+- **Read** (View) a list of all their leads, with built-in search and pagination (so we don't send 10,000 leads to the frontend all at once).
+- **Update** lead information.
+- **Delete** leads safely.
 
-3. **Security Measures (`src/middleware/authMiddleware.js`)**: 
-   - We created a lock on our API called `requireAuth`. When a user logs in, they get a "JWT" (JSON Web Token) which acts like a VIP wristband.
-   - Every time the frontend asks for secure data, it sends the JWT. `requireAuth` checks the wristband. If it's valid, it figures out exactly which `company_id` the user belongs to and attaches it to the request so they can never see another company's data.
+### The Secret Magic: Tenant Isolation
+The coolest part of Phase 2 is that the user never has to tell us what company they belong to when adding a lead. Our backend automatically looks at their VIP Wristband (JWT Token), finds their `company_id`, and permanently glues it to the Lead. This ensures that Company A can never, ever see Company B's leads!
 
-4. **Controllers & Logic (`src/controllers/authController.js`)**:
-   - **`/register`**: Creates an `Admin` user and a dummy Tenant named "Pending Setup".
-   - **`/business-setup`**: Takes the logged-in user and fully fills out their Tenant details (Business Name, GST, etc.).
-   - **`/login`**: Checks the email, securely compares the hashed password using `bcrypt`, and returns the JWT wristband. It also ensures SuperAdmins can only log in through the SuperAdmin portal.
-   - **`/forgot-password` & `/verify-otp`**: Generates a random 6-digit code, saves it to the database, and later verifies if the user entered it correctly. For now, it prints the OTP to our server console!
+👉 **For a deep dive into the code behind Phase 2, please read the [PHASE_2_SUMMARY.md](file:///c:/Users/ANIKET/Desktop/NEW%20CRM/PHASE_2_SUMMARY.md) file.**
+
+---
 
 ### What's Next?
-In **Phase 2**, we will start building the "Client & Lead Engine" so you can actually start adding and viewing customer leads!
+In **Phase 3**, we will build the "Telecaller & Attendance Module" to allow managers to track their team's performance!
